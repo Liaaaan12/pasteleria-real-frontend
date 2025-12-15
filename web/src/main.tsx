@@ -8,6 +8,8 @@ import "./styles/main.css";
 import { StrictMode } from 'react'
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { initDataLoaders } from "./utils/dataLoaders";
+import { runApiStartupChecks } from "./services/health";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { seedUsersFromJson } from './utils/seedUsers';
@@ -18,22 +20,34 @@ import { seedUsersFromJson } from './utils/seedUsers';
  *  - StrictMode ayuda a detectar practicas inseguras en desarrollo (no se como jajaja)
  */
 
-createRoot(document.getElementById("root") as HTMLElement).render(
-    <StrictMode>
-        <AuthProvider>
-            <CartProvider>
-                <App />
-            </CartProvider>
-        </AuthProvider>
-    </StrictMode>
-)
+async function bootstrap() {
+    try {
+        await initDataLoaders();
+    } catch {
+        // If initialization fails, continue rendering; pages can handle empty data gracefully
+    }
+
+    // Non-blocking API health checks to surface backend issues in console
+    runApiStartupChecks().catch(() => {});
+
+    createRoot(document.getElementById("root") as HTMLElement).render(
+        <StrictMode>
+            <AuthProvider>
+                <CartProvider>
+                    <App />
+                </CartProvider>
+            </AuthProvider>
+        </StrictMode>
+    )
+}
+
+bootstrap();
 
 // Seed dev users into localStorage on development builds so the demo accounts are available
 if (import.meta.env.DEV) {
     try {
         seedUsersFromJson();
-    } catch (err) {
+    } catch {
         // ignore seed errors in dev
-        // console.debug('seed error', err);
     }
 }

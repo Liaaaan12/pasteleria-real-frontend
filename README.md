@@ -36,10 +36,10 @@ pnpm install
 
 ### 3. Configurar la URL de la API
 
-Crear un archivo `.env` en la raíz del proyecto:
+Crear un archivo `web/.env.local` (o `web/.env`) en el proyecto frontend con la URL EXTERNA de tu API (sin valores de localhost):
 
 ```env
-VITE_API_URL=http://localhost:8080/api
+VITE_API_URL=https://api.tu-dominio.com/api
 ```
 
 ### 4. Ejecutar en modo desarrollo
@@ -50,7 +50,7 @@ npm run dev
 pnpm dev
 ```
 
-La aplicación estará disponible en: `http://localhost:5173`
+La aplicación estará disponible en el puerto que indique Vite en tu entorno.
 
 ## Scripts Disponibles
 
@@ -102,7 +102,7 @@ Crear un archivo `src/services/api.ts`:
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL, // requerido, define en web/.env.local
   headers: {
     'Content-Type': 'application/json',
   },
@@ -275,7 +275,7 @@ npm run build
 
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
-| `VITE_API_URL` | URL base de la API | `http://localhost:8080/api` |
+| `VITE_API_URL` | URL base de la API | `https://api.tu-dominio.com/api` |
 
 ## Usuarios de Prueba
 
@@ -289,11 +289,11 @@ npm run build
 
 ### Error de CORS
 
-Verificar que la API tenga configurado CORS para la URL del frontend:
+Verificar que la API tenga configurado CORS para la URL del frontend (tu dominio o entorno de despliegue):
 
 ```properties
 # En application.properties del backend
-cors.allowed-origins=http://localhost:5173
+cors.allowed-origins=https://frontend.tu-dominio.com
 ```
 
 ### Token expirado
@@ -302,7 +302,7 @@ El token JWT expira después de 24 horas. Si recibes error 401, vuelve a iniciar
 
 ### API no responde
 
-Verificar que el backend esté ejecutándose en `http://localhost:8080`
+Verificar que el backend esté accesible en la URL configurada en `VITE_API_URL`
 
 ## Contacto y Soporte
 

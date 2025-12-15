@@ -1,10 +1,18 @@
 import axios from 'axios';
+import type { AxiosError, AxiosRequestConfig } from 'axios';
+
+// Require external API URL via environment; no localhost fallback
+const baseURL = import.meta.env.VITE_API_URL as string | undefined;
+if (!baseURL) {
+  console.warn('VITE_API_URL is not set. Configure web/.env.local to point to your external API.');
+}
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
 // Interceptor para agregar el token JWT a todas las peticiones
@@ -24,8 +32,10 @@ api.interceptors.request.use(
 // Interceptor para manejar errores de respuesta
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  (error: AxiosError) => {
+    const cfg = error?.config as AxiosRequestConfig | undefined;
+    const skipRedirect = cfg?.skipAuthRedirect === true;
+    if (error.response?.status === 401 && !skipRedirect) {
       // Token expirado o inválido
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -90,12 +100,12 @@ export const productService = {
     return response.data;
   },
 
-  create: async (producto: any) => {
+  create: async (producto: unknown) => {
     const response = await api.post('/productos', producto);
     return response.data;
   },
 
-  update: async (id: number, producto: any) => {
+  update: async (id: number, producto: unknown) => {
     const response = await api.put(`/productos/${id}`, producto);
     return response.data;
   },
@@ -117,7 +127,7 @@ export const categoriaService = {
     return response.data;
   },
 
-  create: async (categoria: any) => {
+  create: async (categoria: unknown) => {
     const response = await api.post('/categorias', categoria);
     return response.data;
   },
